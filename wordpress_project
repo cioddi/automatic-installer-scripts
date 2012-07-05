@@ -1,0 +1,103 @@
+#!/bin/bash
+
+#description	: This script will a new wordpress project on your local apache.
+#author			: Max Tobias Weber
+#date			: 20120705
+#version		: 0.1
+#usage			: sudo ./wordpress_project {*NEW_PROJECT_NAME*}
+#==============================================================================
+
+projectname=$1
+projectsfolder="{*PATH_TO_YOUR_PROJECTS_FOLDER*}"
+dbhost="127.0.0.1"
+dbuser="{*DATABASE_USERNAME*}"
+dbpassword="{*DATABASE_PASSWORD*}"
+user="{*UNIX_USERNAME*}"
+apachectl="/opt/local/apache2/bin/apachectl"
+vhosts_conf="/opt/local/apache2/conf/extra/httpd-vhosts.conf"
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  creating new wordpress project \""$projectname"\"		║"
+echo "╚═══════════════════════════════════════════════════════╝"
+rm latest.zip
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  get latest wordpress release				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+wget -v http://wordpress.org/latest.zip
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create project dir					║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+mkdir $projectsfolder/$projectname
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  unzip to project dir					║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+unzip latest.zip -d $projectsfolder/$projectname
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create httpdconf-vhosts entry			║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+echo "
+
+<VirtualHost  *:80>
+	DocumentRoot '$projectsfolder/$projectname/wordpress'	
+	ServerName $projectname
+	
+	<Directory '$projectsfolder/$projectname/wordpress'>
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+</VirtualHost>" >> $vhosts_conf
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create /etc/hosts entry				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+echo "127.0.0.1       $projectname" >> /etc/hosts
+
+$apachectl -k restart
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create database					║"
+echo "╚═══════════════════════════════════════════════════════╝"
+mysqladmin5 -u $dbuser --password=$dbpassword create $projectname
+
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  edit wordpress config				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+sed -i "" "s/database_name_here/$projectname/g" $projectsfolder/$projectname/wordpress/wp-config-sample.php
+sed -i "" "s/username_here/$dbuser/g" $projectsfolder/$projectname/wordpress/wp-config-sample.php
+sed -i "" "s/password_here/$dbpassword/g" $projectsfolder/$projectname/wordpress/wp-config-sample.php
+sed -i "" "s/localhost/$dbhost/g" $projectsfolder/$projectname/wordpress/wp-config-sample.php	
+
+
+mv $projectsfolder/$projectname/wordpress/wp-config-sample.php $projectsfolder/$projectname/wordpress/wp-config.php
+
+chmod -R 755 $projectsfolder/$projectname/wordpress/wp-content
+
+sudo chown -R $user $projectsfolder/$projectname/wordpress
