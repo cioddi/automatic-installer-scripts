@@ -1,0 +1,92 @@
+#!/bin/bash
+
+#description	: This script will a new symfony 2 project on your local apache.
+#author			: Max Tobias Weber
+#date			: 20120707
+#version		: 0.1
+#usage			: sudo ./symfony_project {*NEW_PROJECT_NAME*}
+#==============================================================================
+
+projectname=$1
+projectsfolder="{*PATH_TO_YOUR_PROJECTS_FOLDER*}"
+dbhost="127.0.0.1"
+dbuser="{*DATABASE_USERNAME*}"
+dbpassword="{*DATABASE_PASSWORD*}"
+user="{*UNIX_USERNAME*}"
+apachectl="/opt/local/apache2/bin/apachectl"
+vhosts_conf="/opt/local/apache2/conf/extra/httpd-vhosts.conf"
+
+mkdir $projectsfolder/$projectname
+cd $projectsfolder/$projectname
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  get latest symfony release				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+git clone git://github.com/symfony/symfony-standard.git
+
+mv symfony-standard/* $projectsfolder/$projectname/
+
+rm -rf symfony-standard
+
+wget http://getcomposer.org/composer.phar
+
+
+php composer.phar install
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create httpdconf-vhosts entry			║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+echo "
+
+<VirtualHost  *:80>
+	DocumentRoot '$projectsfolder/$projectname/web'	
+	ServerName $projectname
+	
+	<Directory '$projectsfolder/$projectname/web'>
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+</VirtualHost>" >> $vhosts_conf
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create /etc/hosts entry				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+echo "127.0.0.1       $projectname" >> /etc/hosts
+
+$apachectl -k restart
+
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  create database					║"
+echo "╚═══════════════════════════════════════════════════════╝"
+mysqladmin5 -u $dbuser --password=$dbpassword create $projectname
+
+
+
+sudo chmod -R 755 $projectsfolder/$projectname/
+
+sudo chown -R $user $projectsfolder/$projectname/
+
+sudo chmod -R 777 $projectsfolder/$projectname/app/cache
+sudo chmod -R 777 $projectsfolder/$projectname/app/logs
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║  edit symfony parameters.yml				║"
+echo "╚═══════════════════════════════════════════════════════╝"
+
+sed -i "" "s/database_password: ~/database_password: $dbpassword/g" $projectsfolder/$projectname/app/config/parameters.yml
+sed -i "" "s/database_host:     localhost/database_host:     $dbhost/g" $projectsfolder/$projectname/app/config/parameters.yml
+sed -i "" "s/database_user:     root/database_user:     $dbuser/g" $projectsfolder/$projectname/app/config/parameters.yml
+sed -i "" "s/database_name:     symfony/database_name:     $projectname/g" $projectsfolder/$projectname/app/config/parameters.yml
