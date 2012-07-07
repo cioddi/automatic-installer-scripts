@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#description	: This script will a new symfony 2 project on your local apache.
+#description	: This script will create a new symfony 2 project on your local apache.
 #author			: Max Tobias Weber
 #date			: 20120707
 #version		: 0.1

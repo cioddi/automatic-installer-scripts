@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#description	: This script will a new wordpress project on your local apache.
+#description	: This script create will a new wordpress project on your local apache.
 #author			: Max Tobias Weber
 #date			: 20120705
 #version		: 0.1

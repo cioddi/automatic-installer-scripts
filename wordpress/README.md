@@ -1,4 +1,4 @@
-Wordpress blog kickstarter script
+Wordpress - automatic installer script
 
 #author			: Max Tobias Weber
 #date			: 20120705
