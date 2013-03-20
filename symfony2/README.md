@@ -6,9 +6,9 @@ Symfony 2 project - automatic installer script
 #usage			: sudo ./symfony_project {*NEW_PROJECT_NAME*}
 #==============================================================================
 
-1.) 	Clone the latest symphony 2 version from github to a new folder 
+1.) 	Clone the latest symfony 2 version from github to a new folder 
 	inside your projects directory 
-2.)	wget composer.phar and install symphony bundles using
+2.)	wget composer.phar and install symfony bundles using
 	"php composer.phar install"
 3.)	Create a new vhost entry on your local apache
 4.)	Create a /etc/hosts entry on your local machine
